@@ -29,7 +29,7 @@ The learned rules generalize well - in testing, rules helped in 27 cases and hur
 1.  **Clone and Setup**:
     ```bash
     git clone <repository-url>
-    cd mohit_ace
+    cd ace-finer
     uv venv
     source .venv/bin/activate
     uv sync
@@ -138,7 +138,7 @@ We never trust the Reflector blindly. A rule is only saved if it is **proven** (
 ## Project Structure
 
 ```
-mohit_ace/
+ace-finer/
 ├── main.py                 # Entry point, batch loop
 ├── runner.py               # Orchestrates single-sample lifecycle
 ├── state.py                # State dataclass passed between agents
