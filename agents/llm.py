@@ -21,7 +21,7 @@ class LLMClient:
     def __init__(
         self,
         api_key: str,
-        model: str = "llama-3.3-70b-versatile",
+        model: str = "openai/gpt-oss-120b",
         on_cost: Callable[[float], None] | None = None
     ):
         """

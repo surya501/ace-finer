@@ -40,7 +40,7 @@ def parse_args():
                    help="Checkpoint every N samples")
     p.add_argument("--max-cost", type=float, default=5.0,
                    help="Maximum API cost in dollars")
-    p.add_argument("--model", type=str, default="llama-3.3-70b-versatile",
+    p.add_argument("--model", type=str, default="openai/gpt-oss-120b",
                    help="Groq model to use")
     return p.parse_args()
 
