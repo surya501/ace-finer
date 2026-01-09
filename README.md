@@ -17,6 +17,26 @@ After training on just 100 samples, ACE dramatically improves accuracy on held-o
 
 The learned rules generalize well - in testing, rules helped in 27 cases and hurt in 0 cases.
 
+## Dataset & Cost
+
+**FiNER-139 Dataset:**
+
+| Split | Samples |
+|-------|---------|
+| Train | 900,384 |
+| Validation | 112,494 |
+| Test | 108,378 |
+| **Total** | **1,121,256** |
+
+**Cost Estimates (using Groq's openai/gpt-oss-120b at ~$0.002/sample):**
+
+| Samples | Cost | Use Case |
+|---------|------|----------|
+| 1,000 | $2 | Development |
+| 10,000 | $20 | Solid experiment |
+| 50,000 | $100 | Comprehensive run |
+| 900K (full train) | ~$1,800 | Full dataset |
+
 ## Quick Start
 
 ### Prerequisites
