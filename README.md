@@ -28,20 +28,25 @@ The learned rules generalize well - in testing, rules helped in 27 cases and hur
 | Test | 108,378 |
 | **Total** | **1,121,256** |
 
-**Cost Estimates:**
+**Model Comparison:**
 
-| Model | Cost/Sample | 1K Samples | 10K Samples |
-|-------|-------------|------------|-------------|
-| nvidia/nemotron-nano-9b-v2:free | $0 | Free | Free |
-| meta-llama/llama-3.3-70b-instruct | ~$0.001 | ~$1 | ~$10 |
-| openai/gpt-4o-mini | ~$0.002 | ~$2 | ~$20 |
+| Model | Provider | Accuracy | Cost/100 | Notes |
+|-------|----------|----------|----------|-------|
+| openai/gpt-oss-120b | Groq | **50%** | $0.20 | Best accuracy |
+| openai/gpt-oss-20b | OpenRouter | ~10% | ~Free | Much lower accuracy |
+| nvidia/nemotron-nano-9b-v2:free | OpenRouter | N/A | Free | Severe rate limits |
+
+**Recommendation:** Use Groq with `gpt-oss-120b` for best results. Set `GROQ_API_KEY` and run:
+```bash
+uv run python main.py --model openai/gpt-oss-120b
+```
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
-- An [OpenRouter](https://openrouter.ai/) API Key (free tier available)
+- API Key: [Groq](https://console.groq.com/) (recommended) or [OpenRouter](https://openrouter.ai/)
 
 ### Installation
 
