@@ -20,14 +20,16 @@ MODEL_PRICING = {
 
 DEFAULT_MODEL = "nvidia/nemotron-nano-9b-v2:free"
 
-# OpenRouter free tier: 20 requests/minute = 1 request per 3 seconds
-FREE_TIER_RPM = 20
+# OpenRouter rate limits:
+# - Free tier (no credits): 20 req/min, 50 req/day
+# - With $10+ credits: 200 req/min, 1000 req/day
+DEFAULT_RPM = 200  # Assume user has credits
 
 
 class RateLimiter:
     """Simple rate limiter using token bucket algorithm."""
 
-    def __init__(self, requests_per_minute: int = FREE_TIER_RPM):
+    def __init__(self, requests_per_minute: int = DEFAULT_RPM):
         self.min_interval = 60.0 / requests_per_minute
         self.last_request = 0.0
         self._lock = asyncio.Lock()
@@ -59,7 +61,7 @@ class LLMClient:
         model: str = DEFAULT_MODEL,
         base_url: str = "https://openrouter.ai/api/v1",
         on_cost: Callable[[float], None] | None = None,
-        requests_per_minute: int = FREE_TIER_RPM
+        requests_per_minute: int = DEFAULT_RPM
     ):
         """
         Initialize LLM client.
