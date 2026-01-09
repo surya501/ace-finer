@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-import os
+import time
 from typing import Callable
 import openai
 
@@ -20,12 +20,34 @@ MODEL_PRICING = {
 
 DEFAULT_MODEL = "nvidia/nemotron-nano-9b-v2:free"
 
+# OpenRouter free tier: 20 requests/minute = 1 request per 3 seconds
+FREE_TIER_RPM = 20
+
+
+class RateLimiter:
+    """Simple rate limiter using token bucket algorithm."""
+
+    def __init__(self, requests_per_minute: int = FREE_TIER_RPM):
+        self.min_interval = 60.0 / requests_per_minute
+        self.last_request = 0.0
+        self._lock = asyncio.Lock()
+
+    async def acquire(self):
+        """Wait until we can make another request."""
+        async with self._lock:
+            now = time.monotonic()
+            wait_time = self.last_request + self.min_interval - now
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+            self.last_request = time.monotonic()
+
 
 class LLMClient:
     """
     Async LLM client for OpenRouter with OpenAI-compatible API.
 
     Features:
+    - Rate limiting for free tier (20 req/min)
     - Exponential backoff on rate limits
     - Cost tracking via callback
     - Configurable model and provider
@@ -36,7 +58,8 @@ class LLMClient:
         api_key: str,
         model: str = DEFAULT_MODEL,
         base_url: str = "https://openrouter.ai/api/v1",
-        on_cost: Callable[[float], None] | None = None
+        on_cost: Callable[[float], None] | None = None,
+        requests_per_minute: int = FREE_TIER_RPM
     ):
         """
         Initialize LLM client.
@@ -46,6 +69,7 @@ class LLMClient:
             model: Model name to use
             base_url: API base URL (OpenRouter, Groq, etc.)
             on_cost: Callback invoked with cost after each request
+            requests_per_minute: Rate limit (default: 20 for free tier)
         """
         self.client = openai.AsyncOpenAI(
             base_url=base_url,
@@ -53,10 +77,11 @@ class LLMClient:
         )
         self.model = model
         self.on_cost = on_cost
+        self.rate_limiter = RateLimiter(requests_per_minute)
 
     async def complete(self, messages: list[dict], retries: int = 5) -> str:
         """
-        Make completion with exponential backoff.
+        Make completion with rate limiting and exponential backoff.
 
         Args:
             messages: Chat messages in OpenAI format
@@ -68,6 +93,9 @@ class LLMClient:
         Raises:
             RuntimeError: If all retries fail
         """
+        # Wait for rate limiter
+        await self.rate_limiter.acquire()
+
         for attempt in range(retries):
             try:
                 resp = await self.client.chat.completions.create(
