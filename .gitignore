@@ -1,0 +1,29 @@
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Playbook database
+playbook_db/
+checkpoints/
+
+# Metrics/logs
+*.json
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# uv
+.python-version
