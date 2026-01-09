@@ -40,8 +40,8 @@ def parse_args():
                    help="Checkpoint every N samples")
     p.add_argument("--max-cost", type=float, default=5.0,
                    help="Maximum API cost in dollars")
-    p.add_argument("--model", type=str, default="openai/gpt-oss-120b",
-                   help="Groq model to use")
+    p.add_argument("--model", type=str, default="nvidia/nemotron-nano-9b-v2:free",
+                   help="Model to use (default: nvidia/nemotron-nano-9b-v2:free)")
     return p.parse_args()
 
 
@@ -50,9 +50,9 @@ async def main():
     args = parse_args()
 
     # Check for API key
-    api_key = os.environ.get("GROQ_API_KEY")
+    api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        log.error("GROQ_API_KEY not found in environment")
+        log.error("OPENROUTER_API_KEY not found in environment")
         return
 
     log.info(f"Starting ACE Framework")

@@ -28,21 +28,20 @@ The learned rules generalize well - in testing, rules helped in 27 cases and hur
 | Test | 108,378 |
 | **Total** | **1,121,256** |
 
-**Cost Estimates (using Groq's openai/gpt-oss-120b at ~$0.002/sample):**
+**Cost Estimates:**
 
-| Samples | Cost | Use Case |
-|---------|------|----------|
-| 1,000 | $2 | Development |
-| 10,000 | $20 | Solid experiment |
-| 50,000 | $100 | Comprehensive run |
-| 900K (full train) | ~$1,800 | Full dataset |
+| Model | Cost/Sample | 1K Samples | 10K Samples |
+|-------|-------------|------------|-------------|
+| nvidia/nemotron-nano-9b-v2:free | $0 | Free | Free |
+| meta-llama/llama-3.3-70b-instruct | ~$0.001 | ~$1 | ~$10 |
+| openai/gpt-4o-mini | ~$0.002 | ~$2 | ~$20 |
 
 ## Quick Start
 
 ### Prerequisites
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
-- A [Groq](https://groq.com/) API Key
+- An [OpenRouter](https://openrouter.ai/) API Key (free tier available)
 
 ### Installation
 
@@ -56,9 +55,9 @@ The learned rules generalize well - in testing, rules helped in 27 cases and hur
     ```
 
 2.  **Environment**:
-    Create a `.env` file in the root directory:
     ```bash
-    GROQ_API_KEY=gsk_your_key_here
+    cp .env.sample .env
+    # Edit .env and add your OpenRouter API key
     ```
 
 ### Usage
@@ -80,7 +79,7 @@ uv run python main.py --max-samples 1000 --curation-freq 100
 - `--curation-freq`: Run curation every N samples (default: 100)
 - `--checkpoint-freq`: Checkpoint every N samples (default: 1000)
 - `--max-cost`: Maximum API cost in dollars (default: 5.0)
-- `--model`: Groq model to use (default: openai/gpt-oss-120b)
+- `--model`: Model to use (default: nvidia/nemotron-nano-9b-v2:free)
 
 ---
 

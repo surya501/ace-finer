@@ -1,45 +1,60 @@
-"""LLM client for Groq API with retry and cost tracking."""
+"""LLM client for OpenRouter API with retry and cost tracking."""
 
 import asyncio
 import logging
+import os
 from typing import Callable
 import openai
 
 log = logging.getLogger(__name__)
 
+# Model pricing per 1M tokens (input, output)
+MODEL_PRICING = {
+    # Free models
+    "nvidia/nemotron-nano-9b-v2:free": (0.0, 0.0),
+    # Paid models (for reference)
+    "openai/gpt-4o-mini": (0.15, 0.60),
+    "anthropic/claude-3-haiku": (0.25, 1.25),
+    "meta-llama/llama-3.3-70b-instruct": (0.30, 0.30),
+}
+
+DEFAULT_MODEL = "nvidia/nemotron-nano-9b-v2:free"
+
 
 class LLMClient:
     """
-    Async LLM client for Groq with OpenAI-compatible API.
+    Async LLM client for OpenRouter with OpenAI-compatible API.
 
     Features:
     - Exponential backoff on rate limits
     - Cost tracking via callback
-    - Configurable model
+    - Configurable model and provider
     """
 
     def __init__(
         self,
         api_key: str,
-        model: str = "openai/gpt-oss-120b",
+        model: str = DEFAULT_MODEL,
+        base_url: str = "https://openrouter.ai/api/v1",
         on_cost: Callable[[float], None] | None = None
     ):
         """
         Initialize LLM client.
 
         Args:
-            api_key: Groq API key
+            api_key: API key (OpenRouter or other provider)
             model: Model name to use
+            base_url: API base URL (OpenRouter, Groq, etc.)
             on_cost: Callback invoked with cost after each request
         """
         self.client = openai.AsyncOpenAI(
-            base_url="https://api.groq.com/openai/v1",
+            base_url=base_url,
             api_key=api_key
         )
         self.model = model
         self.on_cost = on_cost
 
-    async def complete(self, messages: list[dict], retries: int = 3) -> str:
+    async def complete(self, messages: list[dict], retries: int = 5) -> str:
         """
         Make completion with exponential backoff.
 
@@ -69,7 +84,7 @@ class LLMClient:
                 return resp.choices[0].message.content
 
             except openai.RateLimitError:
-                wait = 2 ** attempt
+                wait = 2 ** (attempt + 2)  # Start at 4s, then 8, 16, 32, 64
                 log.warning(f"Rate limited, waiting {wait}s...")
                 await asyncio.sleep(wait)
 
@@ -81,10 +96,14 @@ class LLMClient:
 
     def _calc_cost(self, usage) -> float:
         """
-        Calculate cost based on Groq pricing.
+        Calculate cost based on model pricing.
 
-        Groq pricing for llama-3.3-70b-versatile ($/1M tokens):
-        - Input: $0.59
-        - Output: $0.79
+        Returns 0 for free models, otherwise uses MODEL_PRICING table.
         """
-        return (usage.prompt_tokens * 0.59 + usage.completion_tokens * 0.79) / 1_000_000
+        if usage is None:
+            return 0.0
+
+        pricing = MODEL_PRICING.get(self.model, (0.0, 0.0))
+        input_cost = (usage.prompt_tokens * pricing[0]) / 1_000_000
+        output_cost = (usage.completion_tokens * pricing[1]) / 1_000_000
+        return input_cost + output_cost
