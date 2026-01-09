@@ -18,12 +18,10 @@ MODEL_PRICING = {
     "meta-llama/llama-3.3-70b-instruct": (0.30, 0.30),
 }
 
-DEFAULT_MODEL = "nvidia/nemotron-nano-9b-v2:free"
+DEFAULT_MODEL = "openai/gpt-oss-20b"
 
-# OpenRouter rate limits:
-# - Free tier (no credits): 20 req/min, 50 req/day
-# - With $10+ credits: 200 req/min, 1000 req/day
-DEFAULT_RPM = 200  # Assume user has credits
+# OpenRouter rate limits (paid models with credits)
+DEFAULT_RPM = 200
 
 
 class RateLimiter:
@@ -111,7 +109,11 @@ class LLMClient:
                 if self.on_cost:
                     self.on_cost(cost)
 
-                return resp.choices[0].message.content
+                if resp.choices and resp.choices[0].message.content:
+                    return resp.choices[0].message.content
+                log.warning("Empty response from API, retrying...")
+                await asyncio.sleep(1)
+                continue
 
             except openai.RateLimitError:
                 wait = 2 ** (attempt + 2)  # Start at 4s, then 8, 16, 32, 64

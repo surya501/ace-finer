@@ -40,8 +40,8 @@ def parse_args():
                    help="Checkpoint every N samples")
     p.add_argument("--max-cost", type=float, default=5.0,
                    help="Maximum API cost in dollars")
-    p.add_argument("--model", type=str, default="nvidia/nemotron-nano-9b-v2:free",
-                   help="Model to use (default: nvidia/nemotron-nano-9b-v2:free)")
+    p.add_argument("--model", type=str, default="openai/gpt-oss-20b",
+                   help="Model to use (default: openai/gpt-oss-20b)")
     return p.parse_args()
 
 
